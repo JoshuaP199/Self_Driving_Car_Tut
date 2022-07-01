@@ -8,7 +8,7 @@ const car = new Car(road.getLaneCenter(1),100,30,50);
 animate();
 
 function animate(){
-    car.update();
+    car.update(road.borders);
 
     //Makes it so that the car looks like its moving and not just making a line
     canvas.height = window.innerHeight; 
