@@ -9,17 +9,37 @@ const carCtx = carCanvas.getContext("2d");
 
 const road = new Road(carCanvas.width/2, carCanvas.width*0.9,4);
 
-const N=700;
+const N=500;
 const cars = generateCars(N);
 let bestCar=cars[0];
 if(localStorage.getItem("bestBrain")){
     for(let i=0;i<cars.length;i++){
         cars[i].brain=JSON.parse(localStorage.getItem("bestBrain"));
         if(i!=0){
-            NeuralNetwork.mutate(cars[i].brain,0.3);
+            NeuralNetwork.mutate(cars[i].brain,.5);
         }
     }   
 }
+
+// let yPosition = -100;
+
+// function makeTraffic(number, speed){
+//     traffic.push(new Car(road.getLaneCenter(1), -100,30,50,"DUMMY",2));
+//     for(let i = 0; i<=number;i++){
+//         if(i % 4 === 0){
+//             traffic.push(new Car(road.getLaneCenter(Math.floor(Math.random() * 4)), yPosition,30,50,"DUMMY",speed));
+//         } else {
+//             yPosition-=200;
+//             traffic.push(new Car(road.getLaneCenter(Math.floor(Math.random() * 4)), yPosition,30,50,"DUMMY",speed));
+//             traffic.push(new Car(road.getLaneCenter(Math.floor(Math.random() * 4)), yPosition-50,30,50,"DUMMY",speed));
+//         }
+//     }
+// }
+
+// let traffic = [];
+
+// makeTraffic(30,2);
+
 
 const traffic = [
     new Car(road.getLaneCenter(1), -100,30,50,"DUMMY",2),
@@ -40,10 +60,10 @@ const traffic = [
     new Car(road.getLaneCenter(2), -1600,30,50,"DUMMY",2),
     new Car(road.getLaneCenter(0), -1700,30,50,"DUMMY",2),
     new Car(road.getLaneCenter(2), -1800,30,50,"DUMMY",2),
-    new Car(road.getLaneCenter(1), -1890,30,50,"DUMMY",2),
+    new Car(road.getLaneCenter(3), -1890,30,50,"DUMMY",2),
     new Car(road.getLaneCenter(0), -2200,30,50,"DUMMY",2),
     new Car(road.getLaneCenter(1), -100-2200,30,50,"DUMMY",2),
-    new Car(road.getLaneCenter(0), -300-2200,30,50,"DUMMY",2),
+    new Car(road.getLaneCenter(3), -300-2200,30,50,"DUMMY",2),
     new Car(road.getLaneCenter(2), -300-2200,30,100,"DUMMY",2),
     new Car(road.getLaneCenter(1), -500-2200,30,50,"DUMMY",2),
     new Car(road.getLaneCenter(3), -650-2200,30,50,"DUMMY",2),
@@ -61,7 +81,7 @@ const traffic = [
     new Car(road.getLaneCenter(0), -1700-2200,30,50,"DUMMY",2),
     new Car(road.getLaneCenter(2), -1800-2200,30,50,"DUMMY",2),
     new Car(road.getLaneCenter(1), -1890-2200,30,50,"DUMMY",2),
-    new Car(road.getLaneCenter(0), -2200-2200,30,50,"DUMMY",2),
+    new Car(road.getLaneCenter(3), -2200-2200,30,50,"DUMMY",2),
 
     new Car(road.getLaneCenter(0), -2500-2200,30,50,"DUMMY",2),
     new Car(road.getLaneCenter(1), -2500-2200,30,50,"DUMMY",2),
@@ -69,8 +89,8 @@ const traffic = [
     new Car(road.getLaneCenter(3), -2500-2200,30,50,"DUMMY",2)
 ];
 
-var prevBest = -1000;
-if (prevBest < -600 && localStorage.getItem("bestDistance")){
+var prevBest = -300;
+if (prevBest < -100 && localStorage.getItem("bestDistance")){
     prevBest = JSON.parse(localStorage.getItem("bestDistance"));
 }
 var savedNew = true;
@@ -81,7 +101,7 @@ if (localStorage.getItem("score")){
 }
 localStorage.setItem("score", JSON.stringify(score+1));
 
-console.log("Attempt #:",score,"\n", Math.floor(prevBest));
+console.log("Attempt #:",score,"\n", Math.floor(prevBest)*-1);
 animate();
 
 function getRandomIntInclusive(min, max) {
@@ -90,10 +110,14 @@ function getRandomIntInclusive(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-function save(){
+function save(n){
     console.log("saving");
-    localStorage.setItem("bestDistance", JSON.stringify(bestCar.y));
-    localStorage.setItem("bestBrain",JSON.stringify(bestCar.brain));
+    if(n == 1){
+        localStorage.setItem("bestBrain",JSON.stringify(bestCar.brain));
+    } else {
+        localStorage.setItem("bestDistance", JSON.stringify(bestCar.y));
+        localStorage.setItem("bestBrain",JSON.stringify(bestCar.brain));
+    }
     console.log("saved");
 }
 
@@ -107,7 +131,7 @@ function discard(){
 function generateCars(N){
     const cars=[];
     for(let i=1;i<=N;i++){
-        cars.push(new Car(road.getLaneCenter(1),100,30,50,"AI",5));
+        cars.push(new Car(road.getLaneCenter(1),150,30,50,"AI", 5));
     }
     return cars;
 }
@@ -150,15 +174,30 @@ function animate(){
 
     carCtx.restore();
 
-    if(bestCar.y < prevBest+100 && bestCar.damaged && savedNew){
-        savedNew = false;
-        save();      
-        document.getElementById("restart").click();
-    } else if (bestCar.y === prevBest && bestCar.damaged && savedNew){
-        console.log("same Crash")
-        savedNew = false;
-        document.getElementById("restart").click();
-    }
+    //Need to have this be based off all cars being damaged not just bestCar
 
+    console.log(Math.floor(bestCar.y)*-1, Math.floor(bestCar.y-prevBest)*-1);
+
+    
+
+    if(bestCar.damaged && bestCar.y < -645){
+        if(bestCar.y < prevBest && savedNew){
+            savedNew = false;
+            save();      
+            document.getElementById("restart").click();
+        } else if (bestCar.y < prevBest-500 && savedNew){
+            save(1);
+            savedNew = false;
+            document.getElementById("restart").click();
+        } else if (bestCar.y === prevBest && savedNew){
+            savedNew = false;
+            document.getElementById("restart").click();
+        } 
+        // else if(savedNew){
+        //     savedNew = false;
+        //     document.getElementById("restart").click();
+        // }
+    }
+    
     requestAnimationFrame(animate)
 }

@@ -41,7 +41,7 @@ class Car{
                 this.controls.forward=outputs[0];
                 this.controls.left=outputs[1];
                 this.controls.right=outputs[2];
-                this.controls.reverse=outputs[3]
+                //this.controls.reverse=outputs[3]
             }
         }
     }
@@ -57,10 +57,14 @@ class Car{
                 return true;
             }
         }
-        if(this.y < -400 && this.y > -500 && this.x == 100 ){
+        if(this.y < -400 && this.y > -500 && this.x == 77.5 ){
+            return true;
+        }
+        if(this.y > 150){
             return true;
         }
         return false;
+        
     }
 
     #createPolygon(){
